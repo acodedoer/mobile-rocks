@@ -1,0 +1,474 @@
+var wordscountdown = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function wordscountdown ()
+    {
+        Phaser.Scene.call(this, { key: 'wordscountdown' });
+    },
+
+    create: function ()
+    {   
+        this.count = 0;
+        this.words = this.getWords();
+        this.btn_letter_holder = [];
+        this.btn_word_holder = [];
+        this.letters = [];
+        this.btn_selected = false;
+        this.selected_letter = "";
+        this.selected_index="";
+        this.lookup_btn= new Object();
+        this.all_scanned = true;
+        this.second_counter = 60;
+        let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
+        this.button_scan = new ButtonFunction({scene:this,x:window.innerWidth/2,y:window.innerHeight-5, sprite:'button_scan', function:this.classifyImage}).setScale(this.game.global.scaler).setOrigin(0.5,1);
+        this.nextChallenge();
+        this.countSec()
+        this.timerText = this.add.text(window.innerWidth-5, 5, '1:00', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
+        this.score_text = this.add.text(window.innerWidth/2, 5, '0', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
+        this.answerbox = []
+    },
+
+    getWords: function () {
+        let words = this.shuffle(words_hard).slice(0,3)
+        words.unshift(this.shuffle(words_easy)[0])
+        console.log(words)
+        return words;
+    },
+
+    countSec: function(){
+        this.time.delayedCall(1000, this.countDown, [], this);
+    },
+
+    countDown: function() {
+        this.second_counter--;
+        if(this.second_counter>=0){
+            this.timerText.setText(Math.floor(this.second_counter/60)+':' + (this.second_counter%60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false}));
+            this.countSec()
+        }
+        else{
+           this.gameOver();
+        }  
+    },
+
+    addTime: function() {
+        this.second_counter+=60;
+    },
+
+    gameOver: function(){
+        window.localStorage.setItem('wordscountdownscore', this.count);
+        if(window.localStorage.getItem('wordscountdownbestscore')<=this.count){
+            window.localStorage.setItem('wordscountdownbestscore', this.count);
+        };
+        CameraPreview.hide()
+        this.scene.start('wordscountdowngameover')
+    },
+
+    classifyImage: async function(){
+        this.classified = await takePictureAndClassify()
+        console.log(this.classified);
+    },
+
+    nextChallenge: function(){
+        this.button_scan.visible=true;
+        this.word = this.words[this.count];
+        this.letters = this.shuffle(this.word.split(''))
+        this.displayLetters(this.letters)
+        this.setWordHolders()
+        setupCamera('top');
+        this.disableLetters()
+        this.hideWord();
+    },
+
+    disableLetters: function(){
+        this.btn_letter_holder.forEach(btn =>{
+            btn.input.enabled = false;
+        })
+    },
+
+    enableLetters: function(){
+        this.btn_letter_holder.forEach(btn =>{
+            btn.input.enabled = true;
+        })
+    },
+
+    hideWord: function(){
+        this.btn_confirm.visible = false;
+        this.btn_delete.visible = false;
+        this.btn_word_holder.forEach(btn=>{
+            btn.visible = false;
+        })
+    },
+
+    showWord: function(){
+        this.btn_confirm.visible = true;
+        this.btn_delete.visible = true;
+        this.btn_word_holder.forEach(btn=>{
+            btn.visible = true;
+        })
+    },
+
+    prepareNextChallenge: function(){
+        if(this.count<this.words.length-1)
+        {
+            this.addTime()
+            this.count+=1;
+            this.btn_letter_holder.forEach(btn => {
+                btn.destroyBtn();
+            });
+            this.btn_word_holder.forEach(btn => {
+                btn.destroyBtn();
+            });
+            this.btn_letter_holder.length = 0
+            this.btn_word_holder.length = 0
+            this.button_confirm.destroyBtn()
+            this.button_delete.destroyBtn()
+            this.score_text.setText(this.count)
+        }
+        else{
+            this.toHome()
+        }    
+    },
+
+    displayLetters: function(letters) { 
+        if(letters.length==3){
+            this.displayThree('top',0, letters);
+        }
+        else if( letters.length == 4){
+            this.displayTwo('top',0,letters.slice(0, 2));
+            this.displayTwo('bottom',2,letters.slice(2, 4));
+        }
+        else if( letters.length == 5){
+            this.displayTwo('top',0,letters.slice(0, 2));
+            this.displayThree('bottom',2,letters.slice(2, 5),true);
+        }
+        else if( letters.length == 6){
+            this.displayThree('top',0,letters.slice(0, 3));
+            this.displayThree('bottom',3,letters.slice(3, 6));
+        }
+    },
+
+    displayTwo: function (pos,index,letters){
+        let vertical_pos = (window.innerHeight* 2/3) - (400*this.game.global.scaler)
+        let start = window.innerWidth/2-(200*this.game.global.scaler);
+        let mul = 0;
+        if (pos =="bottom"){
+            vertical_pos = window.innerHeight * 2/3
+            mul = 2;
+        }
+        for (let i =0; i<2; i++){
+            this.btn_letter_holder[index] = new LetterHolder({scene:this,x:start,y:vertical_pos,letter:letters[i]}).setScale(this.game.global.scaler).setOrigin(0.5);
+            this.lookup_btn[letters[i]] = i+mul;
+            this.btn_letter_holder[index].on('pointerdown',function(){
+                if(this.all_scanned == true && this.btn_selected == false){
+                    this.btn_letter_holder[i+mul].setSelected();
+                    this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
+                    this.selected_index = i+mul;
+                    this.btn_selected = true;
+                }
+                else if(this.btn_letter_holder[i+mul].isSelected()==true){
+                    this.btn_letter_holder[i+mul].unSelect()
+                    this.btn_selected = false;
+                    this.selected_letter = "";
+                } 
+            }, this);
+            start+= 400*this.game.global.scaler
+            index+=1;
+        }
+    },
+
+    displayThree: function (pos,index,letters,fiveletterword){
+        let vertical_pos = (window.innerHeight* 2/3) - (400*this.game.global.scaler)
+        let start = window.innerWidth/2-(400*this.game.global.scaler);
+        let mul = 0;
+        if (pos =="bottom"){
+            vertical_pos = window.innerHeight * 2/3
+            mul=3;
+            if(fiveletterword==true){
+                mul=2;
+            }
+        }
+        for (let i =0; i<3; i++){
+            this.btn_letter_holder[index] = new LetterHolder({scene:this,x:start,y:vertical_pos,letter:letters[i]}).setScale(this.game.global.scaler).setOrigin(0.5);
+            this.lookup_btn[letters[i]] = i+mul;
+            this.btn_letter_holder[index].on('pointerdown',function(){
+            if(this.btn_letter_holder[i+mul].locked == false){
+                if(this.all_scanned == true && this.btn_selected == false){
+                    this.btn_letter_holder[i+mul].setSelected();
+                    this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
+                    this.selected_index = i+mul;
+                    this.btn_selected = true;
+                }
+                else if(this.btn_letter_holder[i+mul].isSelected()==true){
+                    this.btn_letter_holder[i+mul].unSelect()
+                    this.btn_selected = false;
+                    this.selected_letter = "";
+                }
+                }                 
+            }, this);
+            start+= 400*this.game.global.scaler
+            index+=1;
+        }
+    },
+
+    setWordHolders:function () {
+        let vertical_pos = window.innerHeight/3 - 300*this.game.global.scaler;
+        let horizontal_pos = window.innerWidth/2 - ((this.letters.length/2 - 0.5) *220*this.game.global.scaler);
+        for(let i =0; i<this.letters.length; i++){
+            this.btn_word_holder[i] = new WordHolder({scene:this,x:horizontal_pos,y:vertical_pos}).setScale(this.game.global.scaler).setOrigin(0.5);
+            this.btn_word_holder[i].on('pointerdown',function(){
+                if(this.selected_letter!=""){
+                    if(this.btn_word_holder[i].getLetter()!=""){
+                        let old_letter = this.btn_word_holder[i].getLetter();
+                        this.unAdd(old_letter)
+                    }
+                    this.btn_word_holder[i].setLetter(this.selected_letter); 
+                    this.btn_selected=false; this.letter=""; 
+                    this.btn_letter_holder[this.selected_index].unSelect();
+                    this.btn_letter_holder[this.selected_index].isAdded();
+                    this.selected_letter=""; 
+                    this.selected_index=""}
+                }, 
+            this)
+            horizontal_pos+=220*this.game.global.scaler
+        }
+        this.btn_delete = new ButtonFunction({scene:this,x:window.innerWidth/4,y:window.innerHeight/3, sprite:'button_clear', function:this.unAddAll}).setScale(this.game.global.scaler).setOrigin(0.5,1);
+        this.btn_confirm= new ButtonFunction({scene:this,x:window.innerWidth* 3/4,y:window.innerHeight/3, sprite:'button_confirm', function:this.checkWord}).setScale(this.game.global.scaler).setOrigin(0.5,1);
+    },
+
+    unAdd: function(l){
+        let index = this.lookup_btn[l];     
+        this.btn_letter_holder[index].unAdd();
+    },
+
+    unAddAll: function(){
+        for(let i = 0; i<this.scene.letters.length; i++){
+            this.scene.btn_word_holder[i].removeLetter()
+            let index = this.scene.lookup_btn[this.scene.letters[i]];
+            this.scene.btn_letter_holder[index].unAdd();
+        }
+    },
+
+    checkWord: function(){
+        let word=''
+        this.scene.btn_word_holder.forEach(btn => {
+            word+=btn.getLetter()
+        });
+        if(this.scene.words.includes(word)){
+            this.scene.prepareNextChallenge()
+            this.scene.nextChallenge()
+        }
+        else {console.log('false')}
+    },
+
+    checkFound: function(){
+        let letter = this.classified[0].label
+        for(let i=0; i<this.word.length; i++){
+            if(this.btn_letter_holder_letter[i].text==letter && this.letters.includes(letter)){
+                this.btn_letter_holder[i].setFillStyle(0x53B3CB,1)
+                this.letters.splice(this.letters.indexOf(letter), 1 );
+                break
+            }
+        }
+
+        if(this.letters.length==0){
+            this.makeLettersInteractive();
+        }
+    }
+    ,
+
+    fakeScan(letters){
+        for(let i =0; i<letters.length; i++){
+            this.time.delayedCall(i* 1000, this.letterFound, [letters[i]], this)
+        }
+    },
+
+    toHome: function()
+    {
+        CameraPreview.stopCamera();
+        this.scene.start("mainmenu")
+    },
+
+    shuffle: function(array){
+        var currentIndex = array.length, temporaryValue, randomIndex;
+    
+        while (0 !== currentIndex) {
+        
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+        
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+        
+        return array;
+
+    },
+
+    setLettersHunt: function(){
+        let letters = this.letters;
+        this.letters = letters;
+        this.setLetterHolders(letters.length)
+        this.setRandomLetters(letters)
+    },
+    setRandomLetters: function(letters){
+        if(letters.length%2==0){
+            for(let i=0;i<letters.length/2;i++){
+                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x - (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
+            }
+
+            for(let i=letters.length/2;i<letters.length;i++){
+                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x + (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
+            }
+        }
+        else{
+            for(let i=0;i<letters.length;i++){
+                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x + (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
+            }
+        }
+    },
+    makeLettersInteractive: function(){
+        count=5;
+        CameraPreview.hide()
+        this.btn_player.visible = true;
+        for(let i=0; i<this.word.length; i++){
+            this.btn_letter_holder[i].setInteractive()
+            this.btn_letter_holder[i].on('pointerdown', () => {if(this.selected==false){this.selected = true; this.initial=i; this.btn_letter_holder[i].setStrokeStyle(4, 0x9895B3); } else {this.current=i; this.replaceLetters()}})
+        }
+    },
+
+    replaceLetters: function(){
+        let holder = this.btn_letter_holder_letter[this.initial].text
+        this.btn_letter_holder[this.initial].setStrokeStyle()
+        if(this.initial>this.current){
+            for(let i=this.initial; i>this.current; i--){
+                this.btn_letter_holder_letter[i].setText(this.btn_letter_holder_letter[i-1].text)
+            }
+            this.btn_letter_holder_letter[this.current].setText(holder);
+        }
+        else{
+             for(let i=this.initial; i<this.current; i++){
+                this.btn_letter_holder_letter[i].setText(this.btn_letter_holder_letter[i+1].text)
+        }
+        this.btn_letter_holder_letter[this.current].setText(holder);
+        }
+        this.selected=false;
+        this.checkAnswer()
+    },
+
+    setSelected: function(){
+
+    },
+
+    getRandomWord: function(){
+        return words[3];
+    },
+    randomiseLetters: function(word){
+        let letters = word.split('')
+        return letters;
+    },
+    // displayLetters: function(letters){
+    //     count = letters.length;
+    //     for(let i=0; i<=count;i++){
+    //         this.btn_letter_holder_letter[i].setText(letters[i])
+    //         this.btn_letter_holder[i].on('pointerdown', () => {this.addFoundLetter(this.btn_letter_holder[i]);});
+    //     }
+    // },
+
+    createWordHolder: function(){
+
+    },
+
+    checkAnswer: function(){
+        let answer=""
+        for(let i=0;i<this.word.length;i++){
+            answer=answer+this.btn_letter_holder_letter[i].text;
+        }
+
+        if (answer == this.word){
+            this.next.input.enabled = true;
+            this.next.setAlpha(1)
+            this.next_text.setAlpha(1)
+            this.setUninteractive()
+            CameraPreview.hide()
+            this.points+=10;
+            this.txt_points.setText(`points: ${this.points}`)
+            this.message.visible = true;
+        }
+        
+    },
+
+    setUninteractive: function(){
+        for(let i=0; i<this.word.length; i++){
+            this.btn_letter_holder[i].input.enabled = false;
+        }
+    },
+
+    addFoundLetter: function(button){
+        button = this.add.image(button.x, button.y, 'btn_blue_letter_holder').setOrigin(0.5,1).setInteractive().setScale(this.game.global.scaler*2.5);
+    },
+
+    updateLetters: function(){
+        for(let i=0; i<9;i++){
+            this.btn_letter_holder_letter[i].setText("")
+        }
+    },
+
+    successFunc: function(result){
+        for(let i =0; i<7; i++){
+            if(result==this.btn_letter_holder_letter[i].text){
+                this.addFoundLetter(this.btn_letter_holder_letter[i])
+            }
+        }
+    },
+    errorFunc: function(error){
+    },
+
+    setLetterHolders: function(count){
+        let middle = window.innerWidth/2;
+        if(count%2==0){
+            let j=0;
+            for(let i=(count/2)-1; i>=0;i--){
+                this.btn_letter_holder[i] = this.add.rectangle(middle - 5 - (j*window.innerWidth/5), window.innerHeight*1/2, (window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(1,0.5);
+                j++;  
+            }; 
+            let k=0;
+            for(let i=(count/2); i<count;i++){
+                this.btn_letter_holder[i] = this.add.rectangle(middle + 5 + (k*window.innerWidth/5), window.innerHeight*1/2,(window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(0,0.5);
+                k++
+            }
+        }
+
+        else{
+            let start = (window.innerWidth - (count * (window.innerWidth/5)))/2;
+            for(let i=0; i<count;i++){
+                this.btn_letter_holder[i] = this.add.rectangle(start + 5 + (i*window.innerWidth/5), window.innerHeight*1/2, (window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(0,0.5);
+            }
+        }
+    },
+
+    letterFound: function(letter){
+        for(let i=0; i<this.word.length; i++){
+            if(this.btn_letter_holder_letter[i].text==letter && this.letters.includes(letter)){
+                this.points+=5;
+                this.txt_points.setText(`points: ${this.points}`)
+                this.btn_letter_holder[i].setFillStyle(0x726E97,1)
+                this.letters.splice(this.letters.indexOf(letter), 1 );
+                break
+            }
+            if(i == this.word.length-1){
+                this.oops.setText("oops, you scanned "+letter)
+                this.time.delayedCall(2000, ()=>{this.oops.setText('')}, [], this)
+            }
+        }
+
+        if(this.letters.length==0){
+            this.makeLettersInteractive();
+        }
+    }
+});

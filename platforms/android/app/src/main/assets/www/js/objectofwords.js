@@ -1,0 +1,2 @@
+let words_hard=['branch','change', 'bench', 'beach', 'cabin', 'chain', 'chant','chin', 'inch', 'crab', 'bath', 'cash', 'each', 'herb', 'rich', 'itch', 'hang', 'brag', 'china', 'basic', 'bring', 'begin','chair','grinch', 'bright','behind', 'charge', 'drench', 'chased', 'banish','snatch', 'trench', 'bridge', 'search', 'starch']
+let words_easy =['cab', 'bag', 'beg', 'big', 'bad', 'bed', 'ban', 'nab', 'had', 'hid', 'hen', 'bat', 'tab', 'arc', 'car', 'cat', 'dig']
