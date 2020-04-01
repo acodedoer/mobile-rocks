@@ -12,16 +12,17 @@ var wordscountdown = new Phaser.Class({
     create: function ()
     {   
         this.count = 0;
-        this.words = this.getWords();
+        //this.words = this.getWords();
+        this.words = ['bas'];
         this.btn_letter_holder = [];
         this.btn_word_holder = [];
         this.letters = [];
         this.btn_selected = false;
         this.selected_letter = "";
-        this.selected_index="";
-        this.lookup_btn= new Object();
-        this.all_scanned = true;
-        this.second_counter = 60;
+        this.selected_index = "";
+        this.lookup_btn = new Object();
+        this.lettersscanned = 0;
+        this.second_counter = 600;
         let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
         this.button_scan = new ButtonFunction({scene:this,x:window.innerWidth/2,y:window.innerHeight-5, sprite:'button_scan', function:this.classifyImage}).setScale(this.game.global.scaler).setOrigin(0.5,1);
         this.nextChallenge();
@@ -68,7 +69,8 @@ var wordscountdown = new Phaser.Class({
 
     classifyImage: async function(){
         this.classified = await takePictureAndClassify()
-        console.log(this.classified);
+        console.log(this.classified[0].label)
+        this.scene.letterFound(this.classified[0].label)
     },
 
     nextChallenge: function(){
@@ -80,6 +82,14 @@ var wordscountdown = new Phaser.Class({
         setupCamera('top');
         this.disableLetters()
         this.hideWord();
+        this.time.delayedCall(2000, this.allLettersScanned, [], this);
+
+    },
+
+    allLettersScanned: function(){
+        this.enableLetters()
+        this.showWord()
+        CameraPreview.hide()
     },
 
     disableLetters: function(){
@@ -111,6 +121,7 @@ var wordscountdown = new Phaser.Class({
     },
 
     prepareNextChallenge: function(){
+        this.lettersscanned = 0;
         if(this.count<this.words.length-1)
         {
             this.addTime()
@@ -123,8 +134,8 @@ var wordscountdown = new Phaser.Class({
             });
             this.btn_letter_holder.length = 0
             this.btn_word_holder.length = 0
-            this.button_confirm.destroyBtn()
-            this.button_delete.destroyBtn()
+            this.btn_confirm.destroyBtn()
+            this.btn_delete.destroyBtn()
             this.score_text.setText(this.count)
         }
         else{
@@ -162,18 +173,28 @@ var wordscountdown = new Phaser.Class({
             this.btn_letter_holder[index] = new LetterHolder({scene:this,x:start,y:vertical_pos,letter:letters[i]}).setScale(this.game.global.scaler).setOrigin(0.5);
             this.lookup_btn[letters[i]] = i+mul;
             this.btn_letter_holder[index].on('pointerdown',function(){
-                if(this.all_scanned == true && this.btn_selected == false){
-                    this.btn_letter_holder[i+mul].setSelected();
-                    this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
-                    this.selected_index = i+mul;
-                    this.btn_selected = true;
-                }
-                else if(this.btn_letter_holder[i+mul].isSelected()==true){
-                    this.btn_letter_holder[i+mul].unSelect()
-                    this.btn_selected = false;
-                    this.selected_letter = "";
-                } 
-            }, this);
+                console.log("b4 locked: ",this.btn_letter_holder[i+mul].locked)
+                console.log("b4 btn selected: ",this.btn_letter_holder[i+mul].isSelected())
+                console.log("b4 selected: ",this.btn_selected)
+                console.log("b4 letter: ",this.selected_letter)
+                if(this.btn_letter_holder[i+mul].locked == false){
+                    if(this.btn_selected == false){
+                        this.btn_letter_holder[i+mul].setSelected();
+                        this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
+                        this.selected_index = i+mul;
+                        this.btn_selected = true;
+                    }
+                    else if(this.btn_letter_holder[i+mul].isSelected()==true){
+                        this.btn_letter_holder[i+mul].unSelect()
+                        this.btn_selected = false;
+                        this.selected_letter = "";
+                    }
+                    console.log("then locked: ",this.btn_letter_holder[i+mul].locked)
+                    console.log("then btn selected: ",this.btn_letter_holder[i+mul].isSelected())
+                    console.log("then selected: ",this.btn_selected)
+                    console.log("then letter: ",this.selected_letter)     
+                    console.log("") 
+            }}, this );
             start+= 400*this.game.global.scaler
             index+=1;
         }
@@ -194,20 +215,21 @@ var wordscountdown = new Phaser.Class({
             this.btn_letter_holder[index] = new LetterHolder({scene:this,x:start,y:vertical_pos,letter:letters[i]}).setScale(this.game.global.scaler).setOrigin(0.5);
             this.lookup_btn[letters[i]] = i+mul;
             this.btn_letter_holder[index].on('pointerdown',function(){
-            if(this.btn_letter_holder[i+mul].locked == false){
-                if(this.all_scanned == true && this.btn_selected == false){
-                    this.btn_letter_holder[i+mul].setSelected();
-                    this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
-                    this.selected_index = i+mul;
-                    this.btn_selected = true;
-                }
-                else if(this.btn_letter_holder[i+mul].isSelected()==true){
-                    this.btn_letter_holder[i+mul].unSelect()
-                    this.btn_selected = false;
-                    this.selected_letter = "";
-                }
-                }                 
-            }, this);
+                if(this.btn_letter_holder[i+mul].locked == false){
+                    if(this.btn_selected == false){
+                        this.btn_letter_holder[i+mul].setSelected();
+                        this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
+                        this.selected_index = i+mul;
+                        this.btn_selected = true;
+                        console.log("selecting")
+                    }
+                    else if(this.btn_letter_holder[i+mul].isSelected()==true){
+                        this.btn_letter_holder[i+mul].unSelect()
+                        this.btn_selected = false;
+                        this.selected_letter = "";
+                        console.log("unselecting")
+                    }
+        }}, this );
             start+= 400*this.game.global.scaler
             index+=1;
         }
@@ -225,7 +247,8 @@ var wordscountdown = new Phaser.Class({
                         this.unAdd(old_letter)
                     }
                     this.btn_word_holder[i].setLetter(this.selected_letter); 
-                    this.btn_selected=false; this.letter=""; 
+                    this.btn_selected=false; 
+                    this.letter=""; 
                     this.btn_letter_holder[this.selected_index].unSelect();
                     this.btn_letter_holder[this.selected_index].isAdded();
                     this.selected_letter=""; 
@@ -276,13 +299,6 @@ var wordscountdown = new Phaser.Class({
         if(this.letters.length==0){
             this.makeLettersInteractive();
         }
-    }
-    ,
-
-    fakeScan(letters){
-        for(let i =0; i<letters.length; i++){
-            this.time.delayedCall(i* 1000, this.letterFound, [letters[i]], this)
-        }
     },
 
     toHome: function()
@@ -310,165 +326,21 @@ var wordscountdown = new Phaser.Class({
 
     },
 
-    setLettersHunt: function(){
-        let letters = this.letters;
-        this.letters = letters;
-        this.setLetterHolders(letters.length)
-        this.setRandomLetters(letters)
-    },
-    setRandomLetters: function(letters){
-        if(letters.length%2==0){
-            for(let i=0;i<letters.length/2;i++){
-                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x - (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
-            }
-
-            for(let i=letters.length/2;i<letters.length;i++){
-                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x + (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
-            }
-        }
-        else{
-            for(let i=0;i<letters.length;i++){
-                this.btn_letter_holder_letter[i] = this.add.text(this.btn_letter_holder[i].x + (this.game.global.scaler*170)/2, this.btn_letter_holder[i].y, letters[i]).setFont('35px Arial').setOrigin(0.5,0.5).setColor('#000000').setAlign('center');
-            }
-        }
-    },
-    makeLettersInteractive: function(){
-        count=5;
-        CameraPreview.hide()
-        this.btn_player.visible = true;
-        for(let i=0; i<this.word.length; i++){
-            this.btn_letter_holder[i].setInteractive()
-            this.btn_letter_holder[i].on('pointerdown', () => {if(this.selected==false){this.selected = true; this.initial=i; this.btn_letter_holder[i].setStrokeStyle(4, 0x9895B3); } else {this.current=i; this.replaceLetters()}})
-        }
-    },
-
-    replaceLetters: function(){
-        let holder = this.btn_letter_holder_letter[this.initial].text
-        this.btn_letter_holder[this.initial].setStrokeStyle()
-        if(this.initial>this.current){
-            for(let i=this.initial; i>this.current; i--){
-                this.btn_letter_holder_letter[i].setText(this.btn_letter_holder_letter[i-1].text)
-            }
-            this.btn_letter_holder_letter[this.current].setText(holder);
-        }
-        else{
-             for(let i=this.initial; i<this.current; i++){
-                this.btn_letter_holder_letter[i].setText(this.btn_letter_holder_letter[i+1].text)
-        }
-        this.btn_letter_holder_letter[this.current].setText(holder);
-        }
-        this.selected=false;
-        this.checkAnswer()
-    },
-
-    setSelected: function(){
-
-    },
-
-    getRandomWord: function(){
-        return words[3];
-    },
-    randomiseLetters: function(word){
-        let letters = word.split('')
-        return letters;
-    },
-    // displayLetters: function(letters){
-    //     count = letters.length;
-    //     for(let i=0; i<=count;i++){
-    //         this.btn_letter_holder_letter[i].setText(letters[i])
-    //         this.btn_letter_holder[i].on('pointerdown', () => {this.addFoundLetter(this.btn_letter_holder[i]);});
-    //     }
-    // },
-
-    createWordHolder: function(){
-
-    },
-
-    checkAnswer: function(){
-        let answer=""
-        for(let i=0;i<this.word.length;i++){
-            answer=answer+this.btn_letter_holder_letter[i].text;
-        }
-
-        if (answer == this.word){
-            this.next.input.enabled = true;
-            this.next.setAlpha(1)
-            this.next_text.setAlpha(1)
-            this.setUninteractive()
-            CameraPreview.hide()
-            this.points+=10;
-            this.txt_points.setText(`points: ${this.points}`)
-            this.message.visible = true;
-        }
-        
-    },
-
-    setUninteractive: function(){
-        for(let i=0; i<this.word.length; i++){
-            this.btn_letter_holder[i].input.enabled = false;
-        }
-    },
-
-    addFoundLetter: function(button){
-        button = this.add.image(button.x, button.y, 'btn_blue_letter_holder').setOrigin(0.5,1).setInteractive().setScale(this.game.global.scaler*2.5);
-    },
-
-    updateLetters: function(){
-        for(let i=0; i<9;i++){
-            this.btn_letter_holder_letter[i].setText("")
-        }
-    },
-
-    successFunc: function(result){
-        for(let i =0; i<7; i++){
-            if(result==this.btn_letter_holder_letter[i].text){
-                this.addFoundLetter(this.btn_letter_holder_letter[i])
-            }
-        }
-    },
-    errorFunc: function(error){
-    },
-
-    setLetterHolders: function(count){
-        let middle = window.innerWidth/2;
-        if(count%2==0){
-            let j=0;
-            for(let i=(count/2)-1; i>=0;i--){
-                this.btn_letter_holder[i] = this.add.rectangle(middle - 5 - (j*window.innerWidth/5), window.innerHeight*1/2, (window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(1,0.5);
-                j++;  
-            }; 
-            let k=0;
-            for(let i=(count/2); i<count;i++){
-                this.btn_letter_holder[i] = this.add.rectangle(middle + 5 + (k*window.innerWidth/5), window.innerHeight*1/2,(window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(0,0.5);
-                k++
-            }
-        }
-
-        else{
-            let start = (window.innerWidth - (count * (window.innerWidth/5)))/2;
-            for(let i=0; i<count;i++){
-                this.btn_letter_holder[i] = this.add.rectangle(start + 5 + (i*window.innerWidth/5), window.innerHeight*1/2, (window.innerWidth*1/5) - 10, (window.innerWidth*1/5) - 10, 0xDAD9DD).setOrigin(0,0.5);
-            }
-        }
-    },
-
     letterFound: function(letter){
-        for(let i=0; i<this.word.length; i++){
-            if(this.btn_letter_holder_letter[i].text==letter && this.letters.includes(letter)){
-                this.points+=5;
-                this.txt_points.setText(`points: ${this.points}`)
-                this.btn_letter_holder[i].setFillStyle(0x726E97,1)
-                this.letters.splice(this.letters.indexOf(letter), 1 );
-                break
+        let found=false
+        for(let i=0; i<this.btn_letter_holder.length; i++)
+            if(this.btn_letter_holder[i].getLetter()==letter && this.btn_letter_holder[i].getScanned() == false){
+                this.btn_letter_holder[i].setScanned();
+                found = true
+                this.lettersscanned+=1;
+                break;
             }
-            if(i == this.word.length-1){
-                this.oops.setText("oops, you scanned "+letter)
-                this.time.delayedCall(2000, ()=>{this.oops.setText('')}, [], this)
+            if(found==false){
+                console.log("oops")
             }
-        }
-
-        if(this.letters.length==0){
-            this.makeLettersInteractive();
-        }
+            console.log(this.lettersscanned,":",this.letters.length)
+            if(this.lettersscanned==this.letters.length){
+                this.allLettersScanned()
+            }
     }
 });

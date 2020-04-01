@@ -18,7 +18,7 @@ class LetterHolder extends Phaser.GameObjects.Sprite {
         this.letter_text.setAlpha(1);
         this.scanned = true;
         this.removeListener('pointerdown', this.setScanned,this); 
-        this.on('pointerdown',this.setSelected,this);
+        //this.on('pointerdown',this.setSelected,this);
     }
 
     getScanned(){

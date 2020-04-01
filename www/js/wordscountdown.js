@@ -12,16 +12,15 @@ var wordscountdown = new Phaser.Class({
     create: function ()
     {   
         this.count = 0;
-        //this.words = this.getWords();
-        this.words = ['bass','hub', 'has', 'bash'];
+        this.words = this.getWords();
         this.btn_letter_holder = [];
         this.btn_word_holder = [];
         this.letters = [];
         this.btn_selected = false;
         this.selected_letter = "";
-        this.selected_index="";
-        this.lookup_btn= new Object();
-        this.lettersscanned=0;
+        this.selected_index = "";
+        this.lookup_btn = new Object();
+        this.lettersscanned = 0;
         this.second_counter = 60;
         let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
         this.button_scan = new ButtonFunction({scene:this,x:window.innerWidth/2,y:window.innerHeight-5, sprite:'button_scan', function:this.classifyImage}).setScale(this.game.global.scaler).setOrigin(0.5,1);
@@ -82,6 +81,7 @@ var wordscountdown = new Phaser.Class({
         setupCamera('top');
         this.disableLetters()
         this.hideWord();
+        //this.time.delayedCall(2000, this.allLettersScanned, [], this);
     },
 
     allLettersScanned: function(){
@@ -171,10 +171,6 @@ var wordscountdown = new Phaser.Class({
             this.btn_letter_holder[index] = new LetterHolder({scene:this,x:start,y:vertical_pos,letter:letters[i]}).setScale(this.game.global.scaler).setOrigin(0.5);
             this.lookup_btn[letters[i]] = i+mul;
             this.btn_letter_holder[index].on('pointerdown',function(){
-                console.log("b4 locked: ",this.btn_letter_holder[i+mul].locked)
-                console.log("b4 btn selected: ",this.btn_letter_holder[i+mul].isSelected())
-                console.log("b4 selected: ",this.btn_selected)
-                console.log("b4 letter: ",this.selected_letter)
                 if(this.btn_letter_holder[i+mul].locked == false){
                     if(this.btn_selected == false){
                         this.btn_letter_holder[i+mul].setSelected();
@@ -187,12 +183,7 @@ var wordscountdown = new Phaser.Class({
                         this.btn_selected = false;
                         this.selected_letter = "";
                     }
-                    console.log("then locked: ",this.btn_letter_holder[i+mul].locked)
-                    console.log("then btn selected: ",this.btn_letter_holder[i+mul].isSelected())
-                    console.log("then selected: ",this.btn_selected)
-                    console.log("then letter: ",this.selected_letter)     
-                    console.log("") 
-            }}, this );
+        }}, this ); 
             start+= 400*this.game.global.scaler
             index+=1;
         }
@@ -202,7 +193,7 @@ var wordscountdown = new Phaser.Class({
         let vertical_pos = (window.innerHeight* 2/3) - (400*this.game.global.scaler)
         let start = window.innerWidth/2-(400*this.game.global.scaler);
         let mul = 0;
-        if (pos =="bottom"){
+        if (pos == "bottom"){
             vertical_pos = window.innerHeight * 2/3
             mul=3;
             if(fiveletterword==true){
@@ -219,13 +210,11 @@ var wordscountdown = new Phaser.Class({
                         this.selected_letter = this.btn_letter_holder[i+mul].getLetter();
                         this.selected_index = i+mul;
                         this.btn_selected = true;
-                        console.log("selecting")
                     }
                     else if(this.btn_letter_holder[i+mul].isSelected()==true){
                         this.btn_letter_holder[i+mul].unSelect()
                         this.btn_selected = false;
                         this.selected_letter = "";
-                        console.log("unselecting")
                     }
         }}, this );
             start+= 400*this.game.global.scaler

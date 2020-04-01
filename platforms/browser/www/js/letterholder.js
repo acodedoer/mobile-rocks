@@ -10,13 +10,19 @@ class LetterHolder extends Phaser.GameObjects.Sprite {
         this.scaler = config.scene.game.global.scaler;
         this.selected = false;
         this.locked = false;
+        this.scanned = false;
     }
 
     setScanned(){
         this.setAlpha(1);
         this.letter_text.setAlpha(1);
+        this.scanned = true;
         this.removeListener('pointerdown', this.setScanned,this); 
         this.on('pointerdown',this.setSelected,this);
+    }
+
+    getScanned(){
+        return this.scanned;
     }
 
     setSelected(){
@@ -26,7 +32,8 @@ class LetterHolder extends Phaser.GameObjects.Sprite {
     
     unSelect(){
         this.setScale(1*this.scaler);
-        this.selected = false;
+        this.selected = false
+        console.log("unselected");
     }
 
     isSelected(){
