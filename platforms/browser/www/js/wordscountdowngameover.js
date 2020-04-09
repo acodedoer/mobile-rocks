@@ -10,6 +10,7 @@ var wordscountdowngameover = new Phaser.Class({
     },
 
     create: function () { 
+        CameraPreview.hide()
         let score = window.localStorage.getItem('wordscountdownscore');
         let best = window.localStorage.getItem('wordscountdownbestscore');
 

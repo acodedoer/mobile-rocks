@@ -14,6 +14,7 @@ preload: function  ()
             ['button_home', 'assets/button_home.png'],
             ['button_next', 'assets/button_next.png'],
             ['button_back', 'assets/button_back.png'],
+            ['button_next', 'assets/button_next.png'],
             ['button_scan', 'assets/button_scan.png'],
             ['button_confirm', 'assets/button_confirm.png'],
             ['button_clear', 'assets/button_clear.png'],
@@ -21,6 +22,14 @@ preload: function  ()
             ['button_countdown', 'assets/button_countdown.png'],
             ['letter_holder', 'assets/letter_holder.png'],
             ['word_holder', 'assets/word_holder.png'],
+            ['food_board', 'assets/food_board.png'],
+            ['item_pizza', 'assets/item_pizza.png'],
+            ['item_juice', 'assets/item_juice.png'],
+            ['item_shawarma', 'assets/item_shawarma.png'],
+            ['item_milkshake', 'assets/item_milkshake.png'],
+            ['penguin_happy', 'assets/penguin_happy.png'],
+            ['bunny_happy', 'assets/bunny_happy.png'],
+            ['speech_bubble', 'assets/speech_bubble.png'],
             ['coin', 'assets/coin.png']
         ]
 
