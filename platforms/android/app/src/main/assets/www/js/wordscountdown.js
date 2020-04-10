@@ -12,8 +12,7 @@ var wordscountdown = new Phaser.Class({
     create: function ()
     {   
         this.count = 0;
-        //this.words = this.getWords();
-        this.words = ['bass', 'has', 'marry', 'chairs', 'pit'];
+        this.words = this.getWords();
         this.btn_letter_holder = [];
         this.btn_word_holder = [];
         this.letters = [];
@@ -22,7 +21,7 @@ var wordscountdown = new Phaser.Class({
         this.selected_index = "";
         this.lookup_btn = new Object();
         this.lettersscanned = 0;
-        this.second_counter = 300;
+        this.second_counter = 60;
         let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
         this.button_scan = new ButtonFunction({scene:this,x:window.innerWidth/2,y:window.innerHeight-5, sprite:'button_scan', function:this.classifyImage}).setScale(this.game.global.scaler).setOrigin(0.5,1);
         this.nextChallenge();

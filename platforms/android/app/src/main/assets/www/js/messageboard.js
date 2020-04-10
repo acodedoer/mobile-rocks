@@ -17,4 +17,8 @@ class MessageBoard extends Phaser.GameObjects.Sprite {
             this.visible=false;
         }
     }
+
+    update(msg){
+        this.text.setText(msg)
+    }
 }

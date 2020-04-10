@@ -29,6 +29,10 @@ preload: function  ()
             ['item_milkshake', 'assets/item_milkshake.png'],
             ['penguin_happy', 'assets/penguin_happy.png'],
             ['bunny_happy', 'assets/bunny_happy.png'],
+            ['penguin_neutral', 'assets/penguin_neutral.png'],
+            ['bunny_neutral', 'assets/bunny_neutral.png'],
+            ['penguin_sad', 'assets/penguin_sad.png'],
+            ['bunny_sad', 'assets/bunny_sad.png'],
             ['speech_bubble', 'assets/speech_bubble.png'],
             ['coin', 'assets/coin.png']
         ]
