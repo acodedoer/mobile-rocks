@@ -15,6 +15,7 @@ var petrandom = new Phaser.Class({
         this.items = this.utilities.shuffle(["water","flowers","berries"])
         this.active = false;
         this.count = 0;
+        this.score = 0;
         this.second_counter =0;
         this.current_item= "";
         this.timerText = this.add.text(window.innerWidth-5, 5, '', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
@@ -33,6 +34,7 @@ var petrandom = new Phaser.Class({
             console.log("clicked")
             console.log(this.classified[0].label)
             if(this.classified[0].label==this.scene.current_item){
+                this.scene.score+=1;
                 this.scene.active=false;
                 this.scene.button_scan.enabled = false;
                 this.scene.button_scan.visible = false;
@@ -57,7 +59,7 @@ var petrandom = new Phaser.Class({
             this.countSec()
         }
         else{
-           this.scene.start('petsgameover')
+            this.gameOver()
         }  
     },
 
@@ -77,7 +79,7 @@ var petrandom = new Phaser.Class({
         else if (this.count<4){
             this.showSpeech();
             this.speech_bubble.update("suitcase");
-            this.current_item = "suitcase"
+            this.current_item = "water"
         }
         this.second_counter=60;
         this.active = true;
@@ -90,11 +92,21 @@ var petrandom = new Phaser.Class({
     },
 
     done: function(){
-        console.log('done')
+        this.setScores()
+        this.scene.start('petsdone')
     },
 
     gameOver: function(){
-        console.log('gameover')
+        this.setScores()
+        CameraPreview.hide()
+        this.scene.start('petsgameover')
+    },
+    
+    setScores(){
+        window.localStorage.setItem('petsrandomscore', this.score);
+        if(window.localStorage.getItem('petsrandombestscore')<=this.score){
+            window.localStorage.setItem('petsrandombestscore', this.score);
+        };
     },
 
     correctScan: function(){
