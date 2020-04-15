@@ -25,6 +25,10 @@ class LetterHolder extends Phaser.GameObjects.Sprite {
         return this.scanned;
     }
 
+    setText(text){
+        this.letter_text.setText(text)
+    }
+
     setSelected(){
             this.setScale(1.1*this.scaler);
             this.selected = true;

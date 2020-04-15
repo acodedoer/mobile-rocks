@@ -11,17 +11,74 @@ var food = new Phaser.Class({
 
     create: function ()
     {
+
+        let utilities = new Utilities({scene: this,x:0, y:0})
+        let number_array = [1,2,3,4,5,6,7,8,9]
+
+        this.add_array = this.getAddArray(utilities.shuffle(number_array))
+        this.mul_array = this.getMulArray(utilities.shuffle(number_array))
+
+        this.food_item = this.add.sprite(window.innerWidth/2, window.innerHeight/2, '').setScale(this.game.global.scaler).setOrigin(0.5)
+        this.num1 = new LetterHolder({scene:this,x:window.innerWidth/5,y:window.innerHeight *4.5/6,letter:''}).setScale(this.game.global.scaler).setOrigin(0.5);
+        this.operation = this.add.text(window.innerWidth* 2/5, window.innerHeight*4.5/6, '', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(0.5).setAlign('center');
+        this.num2 = new LetterHolder({scene:this,x:window.innerWidth* 3/5,y:window.innerHeight*4.5/6,letter:''}).setScale(this.game.global.scaler).setOrigin(0.5);
+        this.answer = this.add.text(window.innerWidth* 4/5, window.innerHeight*4.5/6, '', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(0.5).setAlign('center');
+
+        let btn_del1 = new ButtonFunction({scene:this,x:this.num1.x,y:this.num1.y + (300 * this.game.global.scaler), sprite:'button_clear', function:function(){this.num1.setText(''); this.num1.setAlpha(0.4)}.bind(this)}).setScale(this.game.global.scaler).setOrigin(0.5);
+        let btn_del2= new ButtonFunction({scene:this,x:this.num2.x,y:this.num1.y + (300 * this.game.global.scaler), sprite:'button_clear', function:function(){this.num2.setText(''); this.num2.setAlpha(0.4)}.bind(this)}).setScale(this.game.global.scaler).setOrigin(0.5);
+
         this.score = 0;
-        
+        this.time_left;
+        this.count = 4;
+        this.food_items_one = ['item_juice', 'item_pizza','item_milkshake','item_shawarma']
+        this.food_items_two = ['item_juice', 'item_milkshake','item_shawarma','item_pizza']
+
         let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
+        let score_text = this.add.text(window.innerWidth/2, 5, '0', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(0.5,0).setAlign('center');
         
-        this.score_text = this.add.text(window.innerWidth/2, 5, '0', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(0.5,0).setAlign('center');
-       
-        this.board = new MessageBoard({scene:this, x:window.innerWidth/2, y:window.innerHeight/2 + (200* this.game.global.scaler), board:"food_board"}).setOrigin(0.5).setScale(this.game.global.scaler);
-     
-        this.btn_pizza = new ButtonFunction({scene:this, x:this.board.x-(50*this.game.global.scaler), y:this.board.y-(20*this.game.global.scaler), sprite:'item_pizza', function:function(){}}).setScale(this.game.global.scaler).setOrigin(1);
-        this.btn_juice = new ButtonFunction({scene:this, x:this.board.x-(50*this.game.global.scaler), y:this.board.y+(20*this.game.global.scaler), sprite:'item_juice', function:function(){}}).setScale(this.game.global.scaler).setOrigin(1,0);
-        this.btn_milkshake = new ButtonFunction({scene:this, x:this.board.x+(50*this.game.global.scaler), y:this.board.y-(20*this.game.global.scaler), sprite:'item_milkshake', function:function(){}}).setScale(this.game.global.scaler).setOrigin(0,1);
-        this.btn_shawarma = new ButtonFunction({scene:this, x:this.board.x+(50*this.game.global.scaler), y:this.board.y+(20*this.game.global.scaler), sprite:'item_shawarma', function:function(){}}).setScale(this.game.global.scaler).setOrigin(0);
+        setupCamera('top');
+        this.setQuestion()
+       },
+
+    setQuestion: function(){
+        let food_items;
+        let count;
+        let question_array;
+        if(this.count<this.food_items_one.length){
+            food_items = this.food_items_one
+            count = this.count;
+            question_array = this.add_array
+            this.operation.setText('+')
+        }
+        else{
+            food_items = this.food_items_two
+            count = this.count - this.food_items_one.length
+            question_array = this.mul_array
+            this.operation.setText('x')
+        }
+        this.answer.setText("="+question_array[count])
+        this.food_item.setTexture(food_items[count])
+
+
+    },
+
+    getAddArray: function(array){
+        let arr = []
+        for(let i = 0; i<4; i++){
+            x = Math.floor(Math.random() * (Math.max(...array) - Math.min(...array) + 1) + Math.min(...array))
+            y = Math.floor(Math.random() * (Math.max(...array) - Math.min(...array) + 1) + Math.min(...array))
+            arr[i]= x + y;
+        }
+        return arr;
+    },
+
+    getMulArray: function(array){
+        let arr = []
+        for(let i = 0; i<4; i++){
+            x = Math.floor(Math.random() * (Math.max(...array) - Math.min(...array) + 1) + Math.min(...array))
+            y = Math.floor(Math.random() * (Math.max(...array) - Math.min(...array) + 1) + Math.min(...array))
+            arr[i]= x * y;
+        }
+        return arr;
     }
 })

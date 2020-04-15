@@ -1,12 +1,12 @@
-var petrandom = new Phaser.Class({
+var petsfixed = new Phaser.Class({
 
     Extends: Phaser.Scene,
 
     initialize:
 
-    function petrandom ()
+    function petsfixed ()
     {
-        Phaser.Scene.call(this, { key: 'petrandom' });
+        Phaser.Scene.call(this, { key: 'petsfixed' });
     },
 
     create: function ()
@@ -16,7 +16,7 @@ var petrandom = new Phaser.Class({
         this.active = false;
         this.count = 0;
         this.score = 0;
-        this.second_counter =0;
+        this.second_counter = 63;
         this.current_item= "";
         this.timerText = this.add.text(window.innerWidth-5, 5, '', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
         let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
@@ -26,6 +26,7 @@ var petrandom = new Phaser.Class({
         this.btn_player = this.add.image(window.innerWidth/2, (window.innerHeight/2 + 200*this.game.global.scaler), this.game.global.player_neutral).setOrigin(0.5, 0).setScale(this.game.global.scaler*3);
         this.speech_bubble = new MessageBoard({scene:this, x:window.innerWidth/2, y:this.btn_player.y - (300*this.game.global.scaler), board:"speech_bubble", message:"Hi!"}).setOrigin(0.5).setScale(this.game.global.scaler*3);
         this.start();
+        this.countSec();
     },
 
     classifyImage: async function(){
@@ -48,8 +49,7 @@ var petrandom = new Phaser.Class({
     },
 
     countSec: function(){
-        if(this.active==true){
-        this.time.delayedCall(1000, this.countDown, [], this);}
+        this.time.delayedCall(1000, this.countDown, [], this);
     },
 
     countDown: function() {
@@ -65,8 +65,7 @@ var petrandom = new Phaser.Class({
 
     
     start: function(){
-        let time = Math.floor(Math.random()*10)
-        this.time.delayedCall(time*2000, this.request, [], this);
+        this.time.delayedCall(3000, this.request, [], this);
     },
 
     request: function(){
@@ -81,32 +80,25 @@ var petrandom = new Phaser.Class({
             this.speech_bubble.update("suitcase");
             this.current_item = "water"
         }
-        this.second_counter=60;
         this.active = true;
-        this.timerText.visible = true;
-        this.timerText.setText('1:00')
-        this.countSec();
         this.count+=1;
         this.button_scan.enabled = true;
         this.button_scan.visible = true;
     },
 
     done: function(){
-        this.setScores()
-        this.scene.start('petsdone')
+        this.setScores(true)
+        this.scene.start('petsfixeddone')
     },
 
     gameOver: function(){
         this.setScores()
         CameraPreview.hide()
-        this.scene.start('petsgameover')
+        this.scene.start('petsfixedgameover')
     },
     
-    setScores(){
-        window.localStorage.setItem('petsrandomscore', this.score);
-        if(window.localStorage.getItem('petsrandombestscore')<=this.score){
-            window.localStorage.setItem('petsrandombestscore', this.score);
-        };
+    setScores(done){
+        this.utilities.setScore(this.score, this.second_counter, 'petsfixed', done)
     },
 
     correctScan: function(){
@@ -118,6 +110,7 @@ var petrandom = new Phaser.Class({
             this.done()
         }
         else{
+            this.second_counter+=63;
             this.start()
         }
     },
@@ -136,7 +129,6 @@ var petrandom = new Phaser.Class({
 
     sayThanks: function(){
         this.speech_bubble.update("Thanks")
-        this.timerText.visible = false;
         this.makeHappy()
     },
 
