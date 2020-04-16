@@ -4,7 +4,7 @@ function setupPhaserGame() {
         width: window.innerWidth, 
         height: window.innerHeight, 
         backgroundColor: '#F7F7F7', 
-        scene: [preload, test, splashscreen, petsdone, wordsfixed, wordsfixeddone, wordsfixedgameover, petsfixeddone, petsfixed, petsfixedgameover,playermenu, mainmenu, petsgameover, wordsmenu, pets, petmenu, petrandom, petcountdown, shakescene, food, wordscountdown, wordscountdowngameover, selectpet]
+        scene: [preload, test, splashscreen, petsdone, wordsfixed, wordscountdowndone,fooddone, foodgameover,wordsfixeddone, wordsfixedgameover, petsfixeddone, petsfixed, petsfixedgameover,playermenu, mainmenu, petsgameover, wordsmenu, pets, petmenu, petrandom, petcountdown, shakescene, food, wordscountdown, wordscountdowngameover, selectpet]
     };
 
     game = new Phaser.Game(config);
