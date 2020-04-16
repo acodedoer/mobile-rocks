@@ -12,7 +12,23 @@ var wordscountdown = new Phaser.Class({
     create: function ()
     {   
         this.count = 0;
-        this.words = this.getWords();
+        this.score = 0;
+
+        let utilities = new Utilities({scene:this, x:0, y:0})
+        
+        function getWords(){
+            let words = utilities.shuffle(words_hard).slice(0,3)
+            words.unshift(utilities.shuffle(words_easy)[0])
+            console.log("Words: "+words)
+            return words;
+        }
+
+        this.words = getWords();
+
+        let button_home = new ButtonLink({scene:this,x:utilities.width_start,y:utilities.height_start, sprite:"button_home", link:"mainmenu"}).setOrigin(0,0);
+        this.button_scan = new ButtonFunction({scene:this,x:utilities.width_center,y:utilities.height_end, sprite:'button_scan', function:this.classifyImage}).setOrigin(0.5,1);
+        
+
         this.btn_letter_holder = [];
         this.btn_word_holder = [];
         this.letters = [];
@@ -22,20 +38,11 @@ var wordscountdown = new Phaser.Class({
         this.lookup_btn = new Object();
         this.lettersscanned = 0;
         this.second_counter = 60;
-        let button_home = new ButtonLink({scene:this,x:5,y:5, sprite:"button_home", link:"mainmenu"}).setScale(this.game.global.scaler).setOrigin(0,0);
-        this.button_scan = new ButtonFunction({scene:this,x:window.innerWidth/2,y:window.innerHeight-5, sprite:'button_scan', function:this.classifyImage}).setScale(this.game.global.scaler).setOrigin(0.5,1);
         this.nextChallenge();
         this.countSec()
         this.timerText = this.add.text(window.innerWidth-5, 5, '1:00', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
         this.score_text = this.add.text(window.innerWidth/2, 5, '0', {fontFamily: 'font_lapsus', color:"#000000",fontSize: 150 * this.game.global.scaler}).setOrigin(1,0).setAlign('center');
         this.answerbox = []
-    },
-
-    getWords: function () {
-        let words = this.shuffle(words_hard).slice(0,3)
-        words.unshift(this.shuffle(words_easy)[0])
-        console.log(words)
-        return words;
     },
 
     countSec: function(){

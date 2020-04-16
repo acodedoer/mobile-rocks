@@ -2,6 +2,13 @@ class Utilities extends Phaser.GameObjects.Sprite{
     constructor(config) {
         super(config.scene, config.x, config.y);
         config.scene.add.existing(this);
+        this.width_center = window.innerWidth/2;
+        this.height_center = window.innerHeight/2;
+        this.width_start = 5;
+        this.height_start = 5;
+        this.width_end = window.innerWidth - 5;
+        this.height_end = window.innerHeight - 5;
+
     }
 
     shuffle (array){
