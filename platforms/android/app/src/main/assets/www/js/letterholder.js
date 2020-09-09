@@ -26,6 +26,7 @@ class LetterHolder extends Phaser.GameObjects.Sprite {
     }
 
     setText(text){
+        this.letter = text;
         this.letter_text.setText(text)
     }
 
